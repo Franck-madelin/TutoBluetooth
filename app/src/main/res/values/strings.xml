@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">TutoBluetooth</string>
+    <string name="tgLED">Toggle LED</string>
+    <string name="btn_BT_ON">Bluetooth ON</string>
+    <string name="btn_BT_OFF">Bluetooth OFF</string>
+    <string name="btn_pared_devices">Show paired Devices</string>
+    <string name="btn_discover">Discover New Devices</string>
+    <string name="rx">RX:</string>
+    <string name="status">Status:</string>
+    <string name="ReadBuffer"><![CDATA[<Read Buffer>]]></string>
+    <string name="BluetoothStatus"><![CDATA[<Bluetooth Status>]]></string>
+</resources>
