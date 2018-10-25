@@ -53,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
     private Handler mHandler; // Our main handler that will receive callback notifications
     private ConnectedThread mConnectedThread; // bluetooth background worker thread to send and receive data
 
+    private StringBuilder recDataString = new StringBuilder();
+
     @SuppressLint("HandlerLeak")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         mDevicesListView.setAdapter(mBTArrayAdapter);   //Assign model to view
         mDevicesListView.setOnItemClickListener(mDeviceClickListener);
 
-        mLED1.setEnabled(false);
+        mLED1.setEnabled(mBTAdapter.isEnabled());
 
         mHandler = new Handler() {
             @Override
@@ -92,11 +94,10 @@ public class MainActivity extends AppCompatActivity {
                 if (msg.what == MESSAGE_READ) {
                     String message = null;
 
-                    try {
-                        message = new String((byte[]) msg.obj, "UTF-8");
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
+                    //message = new String((byte[]) msg.obj, "UTF-8");
+                    message = new String((byte[]) msg.obj, 0, msg.arg1);
+                    Log.i(TAG_INFO, "MESSAGE INCOMING =>  " + message);
+
                     mReadBuffer.setText(message);
                 }
             }
@@ -297,9 +298,9 @@ public class MainActivity extends AppCompatActivity {
                     if(!failed)
                     {
                         mConnectedThread = new ConnectedThread(mHandler, mBTSocket);
-                        // mConnectedThread.star
+                        mConnectedThread.start();
 
-                        mHandler.obtainMessage(CONNECTING_STATUS, 1, -1, name).sendToTarget();
+                        mHandler.obtainMessage(CONNECTING_STATUS, 1,-1, name).sendToTarget();
                     }
                 }
             }.start();
