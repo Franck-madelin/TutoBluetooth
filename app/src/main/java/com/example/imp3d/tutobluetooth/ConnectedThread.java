@@ -3,6 +3,7 @@ package com.example.imp3d.tutobluetooth;
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +14,8 @@ public class ConnectedThread extends Thread {
     private final InputStream mmInStream;
     private final OutputStream mmOutStream;
     private final Handler localHandler;
+
+    private final static String TAG_INFO = "franck";
 
     public ConnectedThread(Handler handMain, BluetoothSocket socket) {
         mmSocket = socket;
@@ -59,6 +62,7 @@ public class ConnectedThread extends Thread {
         byte[] bytes = input.getBytes();           //converts entered String into bytes
         try {
             mmOutStream.write(bytes);
+            mmOutStream.flush();
         } catch (IOException e) { }
     }
 
