@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private ListView mDevicesListView;
     private CheckBox mLED1;
     private SeekBar motor;
+    private StringBuilder recDataString = new StringBuilder();
 
     private Handler mHandler; // Our main handler that will receive callback notifications
     private ConnectedThread mConnectedThread; // bluetooth background worker thread to send and receive data
@@ -95,10 +96,25 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if (msg.what == MESSAGE_READ) {
-                    String readMessage = "";
+                    /*String readMessage = "";
                     readMessage = new String((byte[]) msg.obj, 0, msg.arg1);
                     mReadBuffer.setText(readMessage);
-                    Log.i(TAG_INFO, "MESSAGE INCOMING =>  " + readMessage);
+
+                    Log.i(TAG_INFO, "MESSAGE INCOMING =>  " + readMessage);*/
+
+                    Toast.makeText(getApplicationContext(), "Coming in main", Toast.LENGTH_SHORT).show();
+
+                    byte[] readBuf = (byte[]) msg.obj;
+                    String readMessage = new String(readBuf, 0, msg.arg1);                 // msg.arg1 = bytes from connect thread; converting to string
+                    recDataString.append(readMessage);                                    //~: always the last character in a string from the Arduino
+                    //Toast.makeText(MainActivity.this, readMessage, Toast.LENGTH_SHORT).show();
+                    int endOfLineIndex = recDataString.indexOf("~");                    // determine the end-of-line
+
+                    if (endOfLineIndex > 0) {
+                        Log.i(TAG_INFO, "MESSAGE INCOMING MAIN =>  " + recDataString);
+                        Log.i(TAG_INFO, "MESSAGE INCOMING MAIN =>  " + recDataString.toString());
+                    }
+                    Log.i(TAG_INFO, "MESSAGE INCOMING MAIN =>  " + recDataString);
                 }
             }
         };
@@ -261,6 +277,8 @@ public class MainActivity extends AppCompatActivity {
                     mBTArrayAdapter.add(device.getName() + "\n" + device.getAddress());
                     mBTArrayAdapter.notifyDataSetChanged();
                     break;
+                default:
+                        break;
             }
         }
     };
@@ -271,11 +289,8 @@ public class MainActivity extends AppCompatActivity {
         if (mBTAdapter.isEnabled()) {
             for (BluetoothDevice dev : mPairedDevices) {
                 mBTArrayAdapter.add(dev.getName() + "\n" + dev.getAddress());
-                Log.i(TAG_INFO, "liste " + dev);
-                if(!mBTSocket.isConnected() && dev.getName().equals("HC-05-BLE"))
+                if(dev.getName().equals("HC-05-BLE"))
                 {
-                    Log.i(TAG_INFO, "found " + dev);
-                    Log.i(TAG_INFO, "found " + mBTArrayAdapter.getView(mBTArrayAdapter.getCount()-1,null,null).toString());
                     mDevicesListView.performItemClick(mBTArrayAdapter.getView(cpt,null, null),
                             cpt,
                             mBTArrayAdapter.getItemId(cpt));

@@ -37,17 +37,28 @@ public class ConnectedThread extends Thread {
 
     @Override
     public void run() {
+
         byte[] buffer = new byte[1024];  // buffer store for the stream
-        int bytes; // bytes returned from read()
+        int bytes = 0; // bytes returned from read()
         // Keep listening to the InputStream until an exception occurs
         while (true) {
             try {
                 // Read from the InputStream
                 bytes = mmInStream.available();
-                if(bytes != 0) {
+
+                if (bytes != 0) {
                     SystemClock.sleep(100); //pause and wait for rest of data. Adjust this depending on your sending speed.
                     bytes = mmInStream.available(); // how many bytes are ready to be read?
                     bytes = mmInStream.read(buffer, 0, bytes); // record how many bytes we actually read
+
+                    String readMessage = new String(buffer, 0, bytes);
+                    Log.i(TAG_INFO, "Octet Recus: " + bytes);
+                    Log.i(TAG_INFO, "Message => " + readMessage);
+
+                    for (int i = 0; i < bytes; i++) {
+                        Log.i(TAG_INFO, "byte " + i + " => " + buffer[i]);
+                    }
+
                     localHandler.obtainMessage(MainActivity.MESSAGE_READ, bytes, -1, buffer).sendToTarget(); // Send the obtained bytes to the UI activity
                 }
             } catch (IOException e) {
@@ -55,6 +66,8 @@ public class ConnectedThread extends Thread {
                 break;
             }
         }
+
+
     }
 
     /* Call this from the main activity to send data to the remote device */
@@ -63,13 +76,15 @@ public class ConnectedThread extends Thread {
         try {
             mmOutStream.write(bytes);
             mmOutStream.flush();
-        } catch (IOException e) { }
+        } catch (IOException e) {
+        }
     }
 
     /* Call this from the main activity to shutdown the connection */
     public void cancel() {
         try {
             mmSocket.close();
-        } catch (IOException e) { }
+        } catch (IOException e) {
+        }
     }
 }
