@@ -73,8 +73,7 @@ public class MainActivity extends AppCompatActivity {
         mDiscoverBtn = findViewById(R.id.discover);
         mDevicesListView = findViewById(R.id.devicesListView);
         motor = findViewById(R.id.seekBar);
-        mMotorPos = findViewById(R.id.motorPosSend)
-;
+        mMotorPos = findViewById(R.id.motorPosSend);
         mBTAdapter = BluetoothAdapter.getDefaultAdapter(); //Get default bluetooth adapter
 
         mBTArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
@@ -96,25 +95,10 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if (msg.what == MESSAGE_READ) {
-                    /*String readMessage = "";
-                    readMessage = new String((byte[]) msg.obj, 0, msg.arg1);
+                    String readMessage = new String((byte[]) msg.obj, 0, msg.arg1);
                     mReadBuffer.setText(readMessage);
 
-                    Log.i(TAG_INFO, "MESSAGE INCOMING =>  " + readMessage);*/
-
-                    Toast.makeText(getApplicationContext(), "Coming in main", Toast.LENGTH_SHORT).show();
-
-                    byte[] readBuf = (byte[]) msg.obj;
-                    String readMessage = new String(readBuf, 0, msg.arg1);                 // msg.arg1 = bytes from connect thread; converting to string
-                    recDataString.append(readMessage);                                    //~: always the last character in a string from the Arduino
-                    //Toast.makeText(MainActivity.this, readMessage, Toast.LENGTH_SHORT).show();
-                    int endOfLineIndex = recDataString.indexOf("~");                    // determine the end-of-line
-
-                    if (endOfLineIndex > 0) {
-                        Log.i(TAG_INFO, "MESSAGE INCOMING MAIN =>  " + recDataString);
-                        Log.i(TAG_INFO, "MESSAGE INCOMING MAIN =>  " + recDataString.toString());
-                    }
-                    Log.i(TAG_INFO, "MESSAGE INCOMING MAIN =>  " + recDataString);
+                    Log.i(TAG_INFO, "MESSAGE INCOMING =>  " + readMessage);
                 }
             }
         };

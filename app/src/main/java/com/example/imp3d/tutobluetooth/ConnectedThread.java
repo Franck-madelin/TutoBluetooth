@@ -55,9 +55,9 @@ public class ConnectedThread extends Thread {
                     Log.i(TAG_INFO, "Octet Recus: " + bytes);
                     Log.i(TAG_INFO, "Message => " + readMessage);
 
-                    for (int i = 0; i < bytes; i++) {
+                   /* for (int i = 0; i < bytes; i++) {
                         Log.i(TAG_INFO, "byte " + i + " => " + buffer[i]);
-                    }
+                    }*/
 
                     localHandler.obtainMessage(MainActivity.MESSAGE_READ, bytes, -1, buffer).sendToTarget(); // Send the obtained bytes to the UI activity
                 }
