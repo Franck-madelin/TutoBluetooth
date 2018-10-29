@@ -29,17 +29,15 @@ public class ConnectedThread extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         mmInStream = tmpIn;
         mmOutStream = tmpOut;
-
     }
 
     @Override
     public void run() {
 
         byte[] buffer = new byte[1024];  // buffer store for the stream
-        int bytes = 0; // bytes returned from read()
+        int bytes; // bytes returned from read()
         // Keep listening to the InputStream until an exception occurs
         while (true) {
             try {
@@ -47,19 +45,12 @@ public class ConnectedThread extends Thread {
                 bytes = mmInStream.available();
 
                 if (bytes != 0) {
-                    SystemClock.sleep(100); //pause and wait for rest of data. Adjust this depending on your sending speed.
+                    SystemClock.sleep(80); //pause and wait for rest of data. Adjust this depending on your sending speed.
                     bytes = mmInStream.available(); // how many bytes are ready to be read?
                     bytes = mmInStream.read(buffer, 0, bytes); // record how many bytes we actually read
-
                     String readMessage = new String(buffer, 0, bytes);
-                    Log.i(TAG_INFO, "Octet Recus: " + bytes);
-                    Log.i(TAG_INFO, "Message => " + readMessage);
 
-                   /* for (int i = 0; i < bytes; i++) {
-                        Log.i(TAG_INFO, "byte " + i + " => " + buffer[i]);
-                    }*/
-
-                    localHandler.obtainMessage(MainActivity.MESSAGE_READ, bytes, -1, buffer).sendToTarget(); // Send the obtained bytes to the UI activity
+                    localHandler.obtainMessage(MainActivity.MESSAGE_READ, bytes, -1, readMessage).sendToTarget(); // Send the obtained bytes to the UI activity
                 }
             } catch (IOException e) {
                 e.printStackTrace();

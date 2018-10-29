@@ -95,9 +95,8 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if (msg.what == MESSAGE_READ) {
-                    String readMessage = new String((byte[]) msg.obj, 0, msg.arg1);
+                    String readMessage = (String)msg.obj;
                     mReadBuffer.setText(readMessage);
-
                     Log.i(TAG_INFO, "MESSAGE INCOMING =>  " + readMessage);
                 }
             }
@@ -125,9 +124,9 @@ public class MainActivity extends AppCompatActivity {
             });
 
             motor.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
                 }
 
                 @Override
