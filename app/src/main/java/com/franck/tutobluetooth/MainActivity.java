@@ -22,6 +22,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.imp3d.tutobluetooth.R;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Set;
