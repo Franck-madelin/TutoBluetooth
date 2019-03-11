@@ -3,6 +3,7 @@ package com.example.imp3d.tutobluetooth;
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +14,8 @@ public class ConnectedThread extends Thread {
     private final InputStream mmInStream;
     private final OutputStream mmOutStream;
     private final Handler localHandler;
+
+    private final static String TAG_INFO = "franck";
 
     public ConnectedThread(Handler handMain, BluetoothSocket socket) {
         mmSocket = socket;
@@ -26,14 +29,13 @@ public class ConnectedThread extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         mmInStream = tmpIn;
         mmOutStream = tmpOut;
-
     }
 
     @Override
     public void run() {
+
         byte[] buffer = new byte[1024];  // buffer store for the stream
         int bytes; // bytes returned from read()
         // Keep listening to the InputStream until an exception occurs
@@ -41,17 +43,22 @@ public class ConnectedThread extends Thread {
             try {
                 // Read from the InputStream
                 bytes = mmInStream.available();
-                if(bytes != 0) {
-                    SystemClock.sleep(100); //pause and wait for rest of data. Adjust this depending on your sending speed.
+
+                if (bytes != 0) {
+                    SystemClock.sleep(80); //pause and wait for rest of data. Adjust this depending on your sending speed.
                     bytes = mmInStream.available(); // how many bytes are ready to be read?
                     bytes = mmInStream.read(buffer, 0, bytes); // record how many bytes we actually read
-                    localHandler.obtainMessage(MainActivity.MESSAGE_READ, bytes, -1, buffer).sendToTarget(); // Send the obtained bytes to the UI activity
+                    String readMessage = new String(buffer, 0, bytes);
+
+                    localHandler.obtainMessage(MainActivity.MESSAGE_READ, bytes, -1, readMessage).sendToTarget(); // Send the obtained bytes to the UI activity
                 }
             } catch (IOException e) {
                 e.printStackTrace();
                 break;
             }
         }
+
+
     }
 
     /* Call this from the main activity to send data to the remote device */
@@ -59,13 +66,16 @@ public class ConnectedThread extends Thread {
         byte[] bytes = input.getBytes();           //converts entered String into bytes
         try {
             mmOutStream.write(bytes);
-        } catch (IOException e) { }
+            mmOutStream.flush();
+        } catch (IOException e) {
+        }
     }
 
     /* Call this from the main activity to shutdown the connection */
     public void cancel() {
         try {
             mmSocket.close();
-        } catch (IOException e) { }
+        } catch (IOException e) {
+        }
     }
 }

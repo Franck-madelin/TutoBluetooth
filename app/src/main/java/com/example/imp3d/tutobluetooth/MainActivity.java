@@ -19,6 +19,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ListView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     // GUI Components
     private TextView mBluetoothStatus;
     private TextView mReadBuffer;
+    private TextView mMotorPos;
     private Button mScanBtn;
     private Button mOffBtn;
     private Button mListPairedDevicesBtn;
@@ -49,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter<String> mBTArrayAdapter;
     private ListView mDevicesListView;
     private CheckBox mLED1;
+    private SeekBar motor;
+    private StringBuilder recDataString = new StringBuilder();
 
     private Handler mHandler; // Our main handler that will receive callback notifications
     private ConnectedThread mConnectedThread; // bluetooth background worker thread to send and receive data
@@ -68,14 +72,15 @@ public class MainActivity extends AppCompatActivity {
         mListPairedDevicesBtn = findViewById(R.id.PairedBtn);
         mDiscoverBtn = findViewById(R.id.discover);
         mDevicesListView = findViewById(R.id.devicesListView);
-
+        motor = findViewById(R.id.seekBar);
+        mMotorPos = findViewById(R.id.motorPosSend);
         mBTAdapter = BluetoothAdapter.getDefaultAdapter(); //Get default bluetooth adapter
 
-        mBTArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        mBTArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
         mDevicesListView.setAdapter(mBTArrayAdapter);   //Assign model to view
         mDevicesListView.setOnItemClickListener(mDeviceClickListener);
 
-        mLED1.setEnabled(false);
+        mLED1.setEnabled(mBTAdapter.isEnabled());
 
         mHandler = new Handler() {
             @Override
@@ -90,18 +95,12 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if (msg.what == MESSAGE_READ) {
-                    String message = null;
-
-                    try {
-                        message = new String((byte[]) msg.obj, "UTF-8");
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-                    mReadBuffer.setText(message);
+                    String readMessage = (String)msg.obj;
+                    mReadBuffer.setText(readMessage);
+                    Log.i(TAG_INFO, "MESSAGE INCOMING =>  " + readMessage);
                 }
             }
         };
-
 
         if (mBTArrayAdapter == null) {
             // Device does not support Bluetooth
@@ -109,10 +108,11 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Bluetooth device not found!", Toast.LENGTH_SHORT).show();
         } else {
 
+            listPairedDevices();
+
             mLED1.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
 
                     Log.i(TAG_INFO, "Is Checked " + (mLED1.isChecked() ? "1" : "0"));
 
@@ -120,6 +120,29 @@ public class MainActivity extends AppCompatActivity {
                         return;
 
                     mConnectedThread.write(mLED1.isChecked() ? "1" : "0");
+                }
+            });
+
+            motor.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                    Log.i(TAG_INFO, "change Value Motor " + seekBar.getProgress());
+
+                    if (mConnectedThread == null) //First check to make sure thread created
+                        return;
+
+                    mConnectedThread.write("MA;"+seekBar.getProgress());
+                    mMotorPos.setText(String.valueOf(seekBar.getProgress()));
                 }
             });
 
@@ -140,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
             mListPairedDevicesBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    listPairedDevices(v);
+                    listPairedDevices(/*v*/);
                 }
             });
 
@@ -237,16 +260,26 @@ public class MainActivity extends AppCompatActivity {
                     mBTArrayAdapter.add(device.getName() + "\n" + device.getAddress());
                     mBTArrayAdapter.notifyDataSetChanged();
                     break;
+                default:
+                        break;
             }
         }
     };
 
-    private void listPairedDevices(View view) {
+    private void listPairedDevices() {
         mPairedDevices = mBTAdapter.getBondedDevices();
-
+        int cpt=0;
         if (mBTAdapter.isEnabled()) {
-            for (BluetoothDevice dev : mPairedDevices)
+            for (BluetoothDevice dev : mPairedDevices) {
                 mBTArrayAdapter.add(dev.getName() + "\n" + dev.getAddress());
+                if(dev.getName().equals("HC-05-BLE"))
+                {
+                    mDevicesListView.performItemClick(mBTArrayAdapter.getView(cpt,null, null),
+                            cpt,
+                            mBTArrayAdapter.getItemId(cpt));
+                }
+                cpt++;
+            }
 
             //Est ce utile ?
             //mBTArrayAdapter.notifyDataSetChanged();
@@ -297,9 +330,9 @@ public class MainActivity extends AppCompatActivity {
                     if(!failed)
                     {
                         mConnectedThread = new ConnectedThread(mHandler, mBTSocket);
-                        // mConnectedThread.star
+                        mConnectedThread.start();
 
-                        mHandler.obtainMessage(CONNECTING_STATUS, 1, -1, name).sendToTarget();
+                        mHandler.obtainMessage(CONNECTING_STATUS, 1,-1, name).sendToTarget();
                     }
                 }
             }.start();
